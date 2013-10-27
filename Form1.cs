@@ -319,7 +319,7 @@ namespace BibtexManager
             try
             {
                 var row = dgv.Rows[dgv.SelectedCells[0].RowIndex];
-                bool isChinese = !char.IsLetter(row.Cells["title"].Value.ToString()[0]);
+                bool isChinese = row.Cells["title"].Value.ToString()[0] > 'z';
                 string txt = "";
                 switch (row.Cells["type"].Value.ToString().ToLower())
                 {
@@ -333,7 +333,7 @@ namespace BibtexManager
                         if (!isChinese) txt = ARTICLE_REF_TXT_EN;
                         break;
                 }
-                txt = formatByDictionary(txt, new Func<string, string>((x) => { return row.Cells[x].Value.ToString(); }));
+                txt = formatByDictionary(txt, new Func<string, string>((x) => { return row.Cells[x].Value == null ? "" : row.Cells[x].Value.ToString().Replace("--","-"); }));
                 Clipboard.SetText(txt);
             }
             catch (Exception ex)
