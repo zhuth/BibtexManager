@@ -8,6 +8,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using System.Net;
 
 namespace BibtexManager
 {
@@ -23,8 +24,40 @@ namespace BibtexManager
 
         Dictionary<string, string> _bibTexFields = new Dictionary<string, string>();
 
+        HttpListener _httplistener = new HttpListener();
+
+        System.Threading.Thread thrHttpListening;
+
+        private void httpListening()
+        {
+            if (_httplistener.Prefixes.Count == 0) _httplistener.Prefixes.Add("http://127.0.0.1:3982/addnote/");
+            _httplistener.Start();
+            while (this.Visible)
+            {
+                HttpListenerContext context = _httplistener.GetContext();
+                HttpListenerRequest request = context.Request;
+                // Obtain a response object.
+                string data = request.QueryString["data"];
+                if (data != null) parseFile(data);
+                HttpListenerResponse response = context.Response;
+                // Construct a response. 
+                string responseString = "200 OK";
+                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                // Get a response stream and write the response to it.
+                response.ContentLength64 = buffer.Length;
+                System.IO.Stream output = response.OutputStream;
+                output.Write(buffer, 0, buffer.Length);
+                // You must close the output stream.
+                output.Close();
+            }
+            _httplistener.Close();
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
+
+            //frmTools tools = new frmTools(); tools.Show();
+            
             this.Text = Properties.Resources.softwareName;
             string[] fields = Properties.Resources.fields.Split(';');
             foreach (string field in fields)
@@ -57,6 +90,38 @@ namespace BibtexManager
                     parseFile();
                 }
             }
+            else
+            {
+                if (System.IO.File.Exists(Properties.Settings.Default.RecentLib))
+                {
+                    _myFilename = Properties.Settings.Default.RecentLib;
+                    parseFile();
+                }
+            }
+            
+            thrHttpListening = new System.Threading.Thread(new System.Threading.ThreadStart(httpListening));
+            // thrHttpListening.Start();
+
+            Hotkey.Regist(this.Handle, 0, Keys.F10, new Hotkey.HotKeyCallBackHanlder(()=>{
+                string str = Clipboard.GetText().ToString();
+                if (str.StartsWith("@"))
+                {
+                    parseFile(str); Hotkey.SetForegroundWindow(this.Handle);
+                }
+                else
+                {
+                    SendKeys.SendWait("^c");
+                    System.Threading.Thread.Sleep(500);
+                    str = Clipboard.GetText().ToString();
+                    System.Diagnostics.Process.Start("http://scholar.google.com/scholar?q=" + str);
+                }
+            }));
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            base.WndProc(ref m);
+            Hotkey.ProcessHotKey(m);
         }
 
         private IEnumerable<string> getEntryStrings(DataGridViewRowCollection rows)
@@ -86,6 +151,8 @@ namespace BibtexManager
                     sw.WriteLine(entry);
                 }
             }
+            Properties.Settings.Default.RecentLib = _myFilename;
+            Properties.Settings.Default.Save();
         }
 
         private void parseFile(string content = null)
@@ -233,6 +300,87 @@ namespace BibtexManager
                 entries += "\\cite{" + row.Cells["key"].Value + "}";
             }
             Clipboard.SetText(entries);
+        }
+
+        private const string BOOK_REF_TXT = "{author}：《{title}》，{publisher}，{year}年：第-页。";
+        private const string ARTICLE_REF_TXT = "{author}：{title}，《{journal}》，{year}（{number}）：第{pages}页。";
+        private const string BOOK_REF_TXT_EN = "{author} ({year}). {title}. {publisher}: pp. -.";
+        private const string ARTICLE_REF_TXT_EN = "{author} ({year}). {title}. {journal}. {volume} ({number}): pp. {pages}.";
+
+        private string formatByDictionary(string format, Func<string, string> lookup)
+        {
+            Regex reg = new Regex(@"\{(\w+)\}");
+            return reg.Replace(format, new MatchEvaluator((Match m)=>{return lookup(m.Groups[1].ToString());}));
+        }
+
+        private void copyFullReferenceToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (dgv.SelectedCells.Count <= 0) return;
+            try
+            {
+                var row = dgv.Rows[dgv.SelectedCells[0].RowIndex];
+                bool isChinese = !char.IsLetter(row.Cells["title"].Value.ToString()[0]);
+                string txt = "";
+                switch (row.Cells["type"].Value.ToString().ToLower())
+                {
+                    case "book":
+                        txt = BOOK_REF_TXT;
+                        if (!isChinese) txt = BOOK_REF_TXT_EN;
+                        break;
+                    case "article":
+                    default:
+                        txt = ARTICLE_REF_TXT;
+                        if (!isChinese) txt = ARTICLE_REF_TXT_EN;
+                        break;
+                }
+                txt = formatByDictionary(txt, new Func<string, string>((x) => { return row.Cells[x].Value.ToString(); }));
+                Clipboard.SetText(txt);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void removeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (dgv.SelectedCells.Count <= 0) return;
+            try
+            {
+                dgv.Rows.RemoveAt(dgv.SelectedCells[0].RowIndex);
+            }
+            catch (Exception) { }
+        }
+
+        private void articleToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Environment.Exit(0);
+        }
+
+        private void searchStrip_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                for (int searchIndex = 0; searchIndex < dgv.Rows.Count; ++searchIndex)
+                {
+                    bool flag = false;
+                    foreach (DataGridViewCell c in dgv.Rows[searchIndex].Cells)
+                    {
+                        if (c.Value == null) continue;
+                        if (c.Value.ToString().Contains(searchStrip.Text)) { flag = true; break; }
+                    }
+                    dgv.Rows[searchIndex].Selected = flag;
+                }
+            }
+        }
+
+        private void searchStrip_TextChanged(object sender, EventArgs e)
+        {
         }
     }
 }
