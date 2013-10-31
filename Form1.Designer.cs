@@ -36,13 +36,14 @@
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.preferencesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.entryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.removeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.duplicateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addBibTexCodeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyKeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyFullReferenceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.articleToolStripMenuItem = new System.Windows.Forms.ToolStripComboBox();
             this.searchStrip = new System.Windows.Forms.ToolStripTextBox();
             this.sfd = new System.Windows.Forms.SaveFileDialog();
             this.ofd = new System.Windows.Forms.OpenFileDialog();
@@ -54,22 +55,22 @@
             // 
             this.dgv.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgv.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgv.Location = new System.Drawing.Point(0, 29);
+            this.dgv.Location = new System.Drawing.Point(0, 27);
             this.dgv.Name = "dgv";
             this.dgv.RowTemplate.Height = 23;
-            this.dgv.Size = new System.Drawing.Size(411, 341);
+            this.dgv.Size = new System.Drawing.Size(577, 324);
             this.dgv.TabIndex = 2;
             // 
             // menuStrip1
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
+            this.editToolStripMenuItem,
             this.entryToolStripMenuItem,
-            this.articleToolStripMenuItem,
             this.searchStrip});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(411, 29);
+            this.menuStrip1.Size = new System.Drawing.Size(577, 27);
             this.menuStrip1.TabIndex = 3;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -121,6 +122,21 @@
             this.exitToolStripMenuItem.Text = "E&xit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
+            // editToolStripMenuItem
+            // 
+            this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.preferencesToolStripMenuItem});
+            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(42, 23);
+            this.editToolStripMenuItem.Text = "E&dit";
+            // 
+            // preferencesToolStripMenuItem
+            // 
+            this.preferencesToolStripMenuItem.Name = "preferencesToolStripMenuItem";
+            this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.preferencesToolStripMenuItem.Text = "&Preferences";
+            this.preferencesToolStripMenuItem.Click += new System.EventHandler(this.preferencesToolStripMenuItem_Click);
+            // 
             // entryToolStripMenuItem
             // 
             this.entryToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -137,14 +153,14 @@
             // 
             this.removeToolStripMenuItem.Name = "removeToolStripMenuItem";
             this.removeToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Delete)));
-            this.removeToolStripMenuItem.Size = new System.Drawing.Size(236, 22);
+            this.removeToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
             this.removeToolStripMenuItem.Text = "&Remove";
             this.removeToolStripMenuItem.Click += new System.EventHandler(this.removeToolStripMenuItem_Click);
             // 
             // duplicateToolStripMenuItem
             // 
             this.duplicateToolStripMenuItem.Name = "duplicateToolStripMenuItem";
-            this.duplicateToolStripMenuItem.Size = new System.Drawing.Size(236, 22);
+            this.duplicateToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
             this.duplicateToolStripMenuItem.Text = "&Duplicate";
             this.duplicateToolStripMenuItem.Visible = false;
             this.duplicateToolStripMenuItem.Click += new System.EventHandler(this.duplicateToolStripMenuItem_Click);
@@ -152,8 +168,8 @@
             // addBibTexCodeToolStripMenuItem
             // 
             this.addBibTexCodeToolStripMenuItem.Name = "addBibTexCodeToolStripMenuItem";
-            this.addBibTexCodeToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D)));
-            this.addBibTexCodeToolStripMenuItem.Size = new System.Drawing.Size(236, 22);
+            this.addBibTexCodeToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F10;
+            this.addBibTexCodeToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
             this.addBibTexCodeToolStripMenuItem.Text = "&Add BibTex Code...";
             this.addBibTexCodeToolStripMenuItem.Click += new System.EventHandler(this.addBibTexCodeToolStripMenuItem_Click);
             // 
@@ -161,45 +177,23 @@
             // 
             this.copyKeyToolStripMenuItem.Name = "copyKeyToolStripMenuItem";
             this.copyKeyToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F1;
-            this.copyKeyToolStripMenuItem.Size = new System.Drawing.Size(236, 22);
+            this.copyKeyToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
             this.copyKeyToolStripMenuItem.Text = "&Copy Key";
             this.copyKeyToolStripMenuItem.Click += new System.EventHandler(this.copyKeyToolStripMenuItem_Click);
             // 
             // copyFullReferenceToolStripMenuItem
             // 
             this.copyFullReferenceToolStripMenuItem.Name = "copyFullReferenceToolStripMenuItem";
-            this.copyFullReferenceToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C)));
-            this.copyFullReferenceToolStripMenuItem.Size = new System.Drawing.Size(236, 22);
+            this.copyFullReferenceToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D)));
+            this.copyFullReferenceToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
             this.copyFullReferenceToolStripMenuItem.Text = "C&opy Full Reference";
             this.copyFullReferenceToolStripMenuItem.Click += new System.EventHandler(this.copyFullReferenceToolStripMenuItem_Click);
             // 
-            // articleToolStripMenuItem
-            // 
-            this.articleToolStripMenuItem.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.articleToolStripMenuItem.Items.AddRange(new object[] {
-            "Article",
-            "Book",
-            "Booklet",
-            "Conference",
-            "Inbook",
-            "Incollection",
-            "Inproceedings",
-            "Manual",
-            "Mastersthesis",
-            "Misc",
-            "Phdthesis",
-            "Proceedings",
-            "Techreport",
-            "Unpublished"});
-            this.articleToolStripMenuItem.Name = "articleToolStripMenuItem";
-            this.articleToolStripMenuItem.Size = new System.Drawing.Size(75, 25);
-            this.articleToolStripMenuItem.Visible = false;
-            this.articleToolStripMenuItem.Click += new System.EventHandler(this.articleToolStripMenuItem_Click);
-            // 
             // searchStrip
             // 
+            this.searchStrip.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.searchStrip.Name = "searchStrip";
-            this.searchStrip.Size = new System.Drawing.Size(100, 25);
+            this.searchStrip.Size = new System.Drawing.Size(100, 23);
             this.searchStrip.KeyUp += new System.Windows.Forms.KeyEventHandler(this.searchStrip_KeyUp);
             this.searchStrip.TextChanged += new System.EventHandler(this.searchStrip_TextChanged);
             // 
@@ -217,7 +211,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(411, 370);
+            this.ClientSize = new System.Drawing.Size(577, 351);
             this.Controls.Add(this.dgv);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
@@ -245,7 +239,6 @@
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.SaveFileDialog sfd;
         private System.Windows.Forms.OpenFileDialog ofd;
-        private System.Windows.Forms.ToolStripComboBox articleToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem entryToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem removeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem duplicateToolStripMenuItem;
@@ -253,6 +246,8 @@
         private System.Windows.Forms.ToolStripMenuItem copyKeyToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem copyFullReferenceToolStripMenuItem;
         private System.Windows.Forms.ToolStripTextBox searchStrip;
+        private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem preferencesToolStripMenuItem;
 
     }
 }

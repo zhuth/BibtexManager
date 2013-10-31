@@ -8,5 +8,20 @@
     <Setting Name="RecentLib" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="EnglishBookItemFormat" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{author} ({year}). {title}. {publisher}: pp. -.</Value>
+    </Setting>
+    <Setting Name="EnglishArticleItemFormat" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{author} ({year}). {title}. {journal}. {volume} ({number}): pp. {pages}.</Value>
+    </Setting>
+    <Setting Name="NonEnglishBookItemFormat" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{author}：《{title}》，{publisher}，{year}年：第-页。</Value>
+    </Setting>
+    <Setting Name="NonEnglishArticleItemFormat" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{author}：{title}，《{journal}》，{year}（{number}）：第{pages}页。</Value>
+    </Setting>
+    <Setting Name="DefaultSearchEngine" Type="System.String" Scope="User">
+      <Value Profile="(Default)">scholar.google.com/scholar?q={0}</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

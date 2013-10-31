@@ -123,4 +123,7 @@
   <data name="softwareName" xml:space="preserve">
     <value>BibTex Database Manager</value>
   </data>
+  <data name="types" xml:space="preserve">
+    <value>Article;Book;Booklet;Conference;Inbook;Incollection;Inproceedings;Manual;Mastersthesis;Misc;Phdthesis;Proceedings;Techreport;Unpublished</value>
+  </data>
 </root>

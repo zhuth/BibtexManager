@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace BibtexManager
 {
-    static class Hotkey
+    static class W32ApiHelper
     {
         #region 系统api
         [DllImport("user32.dll")]
@@ -19,6 +19,9 @@ namespace BibtexManager
 
         [DllImport("User32.dll")]
         public static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll", EntryPoint = "GetForegroundWindow")]
+        public static extern IntPtr GetForegroundWindow();
         #endregion
 
         /// <summary> 
@@ -31,8 +34,7 @@ namespace BibtexManager
         public static void Regist(IntPtr hWnd, HotkeyModifiers fsModifiers, Keys vk, HotKeyCallBackHanlder callBack)
         {
             int id = keyid++;
-            if (!RegisterHotKey(hWnd, id, fsModifiers, vk))
-                throw new Exception("regist hotkey fail.");
+            if (!RegisterHotKey(hWnd, id, fsModifiers, vk)) return;
             keymap[id] = callBack;
         }
 

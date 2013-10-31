@@ -46,5 +46,65 @@ namespace BibtexManager.Properties {
                 this["RecentLib"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{author} ({year}). {title}. {publisher}: pp. -.")]
+        public string EnglishBookItemFormat {
+            get {
+                return ((string)(this["EnglishBookItemFormat"]));
+            }
+            set {
+                this["EnglishBookItemFormat"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{author} ({year}). {title}. {journal}. {volume} ({number}): pp. {pages}.")]
+        public string EnglishArticleItemFormat {
+            get {
+                return ((string)(this["EnglishArticleItemFormat"]));
+            }
+            set {
+                this["EnglishArticleItemFormat"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{author}：《{title}》，{publisher}，{year}年：第-页。")]
+        public string NonEnglishBookItemFormat {
+            get {
+                return ((string)(this["NonEnglishBookItemFormat"]));
+            }
+            set {
+                this["NonEnglishBookItemFormat"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("{author}：{title}，《{journal}》，{year}（{number}）：第{pages}页。")]
+        public string NonEnglishArticleItemFormat {
+            get {
+                return ((string)(this["NonEnglishArticleItemFormat"]));
+            }
+            set {
+                this["NonEnglishArticleItemFormat"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("scholar.google.com/scholar?q={0}")]
+        public string DefaultSearchEngine {
+            get {
+                return ((string)(this["DefaultSearchEngine"]));
+            }
+            set {
+                this["DefaultSearchEngine"] = value;
+            }
+        }
     }
 }
