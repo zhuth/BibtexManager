@@ -264,7 +264,8 @@ namespace BibtexManager
                         }
                         break;
                     case ',':
-                        parseSetField(ref field, ref value, ref fieldNameFinished, ref row);
+                        if (inBracket > 1 && fieldNameFinished) value += content[i];
+                        else parseSetField(ref field, ref value, ref fieldNameFinished, ref row);
                         break;
                     default:
                         if (fieldNameFinished) value += content[i]; else field += content[i];
