@@ -26,9 +26,6 @@ namespace BibtexManager
         
         private void Form1_Load(object sender, EventArgs e)
         {
-
-            //frmTools tools = new frmTools(); tools.Show();
-            
             this.Text = Properties.Resources.softwareName;
             string[] fields = Properties.Resources.fields.Split(';');
             foreach (string field in fields)
@@ -301,8 +298,6 @@ namespace BibtexManager
         {
             if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.Cancel) return;
             _myFilename = ofd.FileName;
-
-            this.Text = Properties.Resources.softwareName + _myFilename;
             parseFile();
         }
 
@@ -450,6 +445,19 @@ namespace BibtexManager
         private void preferencesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             new dlgPreferences().ShowDialog();
+        }
+
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(_myFilename))
+            {
+                if (MessageBox.Show("Save the current database file?", this.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.Yes)
+                {
+                    saveToolStripMenuItem_Click(null, null);
+                }
+                dgv.Rows.Clear();
+                _myFilename = null;
+            }
         }
     }
 }
