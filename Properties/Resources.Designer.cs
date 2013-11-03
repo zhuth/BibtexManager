@@ -70,7 +70,7 @@ namespace BibtexManager.Properties {
         }
         
         /// <summary>
-        ///   查找类似 BibTex Database Manager 的本地化字符串。
+        ///   查找类似 BibManager 的本地化字符串。
         /// </summary>
         internal static string softwareName {
             get {

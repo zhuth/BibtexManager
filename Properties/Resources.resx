@@ -121,7 +121,7 @@
     <value>key=Key;type=类型;author=作者;title=著作名称;journal=期刊;volume=卷;year=年份;month=月份;number=编号;pages=页码;booktitle=书名;chapter=章;publisher=出版商;address=地址;annote=注解;crossref=交叉引用;date=日期;doi=DOI;edition=版次;editor=编者;eprint=电子出版物;howpublished=出版方式;institution=机构;note=备注;organization=组织;school=院校;series=系列;url=URL;</value>
   </data>
   <data name="softwareName" xml:space="preserve">
-    <value>BibTex Database Manager</value>
+    <value>BibManager</value>
   </data>
   <data name="types" xml:space="preserve">
     <value>Article;Book;Booklet;Conference;Inbook;Incollection;Inproceedings;Manual;Mastersthesis;Misc;Phdthesis;Proceedings;Techreport;Unpublished</value>
