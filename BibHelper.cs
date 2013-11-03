@@ -227,7 +227,7 @@ namespace BibtexManager
                     case 'N':
                         field = "number"; while (value.StartsWith("0")) value = value.Substring(1); break;
                     case 'P':
-                        field = "pages"; if (value.Contains('+')) value = value.Substring(0, value.IndexOf('+')); break;
+                        field = "pages"; break;
                     case 'J':
                         field = "journal"; break;
                     case '9':
