@@ -235,7 +235,10 @@ namespace BibtexManager
             if (dgv.SelectedCells.Count <= 0) return;
             try
             {
-                dgv.Rows.RemoveAt(dgv.SelectedCells[0].RowIndex);
+                int i = dgv.SelectedCells[0].RowIndex;
+                if (dgv.Rows[i].Cells["key"].Value == null) return;
+                _sh.Delete(dgv.Rows[i].Cells["key"].Value.ToString());
+                dgv.Rows.RemoveAt(i);
             }
             catch (Exception) { }
         }
@@ -303,17 +306,7 @@ namespace BibtexManager
                 _sh.Insert(dgv.Rows[i]);
             }
         }
-
-        private void dgv_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e)
-        {
-            if (_rendering || _sh == null) return;
-            for (int i = e.RowIndex; i < e.RowIndex + e.RowCount; ++i)
-            {
-                if (dgv.Rows[i].Cells["key"].Value == null) continue;
-                _sh.Delete(dgv.Rows[i].Cells["key"].Value.ToString());
-            }
-        }
-
+        
         private void exportSelectedToolStripMenuItem_Click(object sender, EventArgs e)
         {
             sfd.Filter = "BibTex File|*.bib";
