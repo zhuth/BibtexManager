@@ -140,7 +140,6 @@ namespace BibtexManager
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            _sh.Commit();
         }
 
         private void addBibTexCodeToolStripMenuItem_Click(object sender, EventArgs e)
@@ -153,11 +152,13 @@ namespace BibtexManager
 
         private void importRecords(string source)
         {
+            _sh.BeginTransaction();
             foreach (var r in _bh.ParseFile(source))
             {
                 int idx = addDgvRow(r);
                 if (_sh != null) _sh.Insert(dgv.Rows[idx]);
             }
+            _sh.Commit();
         }
 
         private void copyKeyToolStripMenuItem_Click(object sender, EventArgs e)

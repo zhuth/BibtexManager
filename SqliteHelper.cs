@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Data.SQLite;
+using ManagedSQLite;
 
 namespace BibtexManager
 {
@@ -11,7 +11,7 @@ namespace BibtexManager
     /// </summary>
     class SqliteHelper
     {
-        SQLiteConnection _conn;
+        Database _conn = new Database();
         HashSet<string> _cols = new HashSet<string>();
         string _colsList = "";
 
@@ -21,8 +21,7 @@ namespace BibtexManager
         /// <param name="filename"></param>
         public SqliteHelper(string filename)
         {
-            _conn = new SQLiteConnection(@"Data Source=" + filename);
-            _conn.Open();
+            _conn.Open(filename);
             foreach (string s in Properties.Resources.fields.Split(';'))
             {
                 int eqidx = s.IndexOf('='); if (eqidx < 0) continue;
@@ -40,11 +39,7 @@ namespace BibtexManager
         /// <returns></returns>
         public int ExecuteNonQuery(string sql)
         {
-            using (var cmd = _conn.CreateCommand())
-            {
-                cmd.CommandText = sql;
-                return cmd.ExecuteNonQuery();
-            }
+            return _conn.ExecuteDML(sql);
         }
 
         /// <summary>
@@ -54,17 +49,15 @@ namespace BibtexManager
         /// <returns></returns>
         public IEnumerable<Dictionary<string, string>> ExecuteQuery(string sql)
         {
-            using (var reader = new SQLiteCommand(sql, _conn).ExecuteReader())
+            var r = _conn.ExecuteQuery(sql);
+            Dictionary<string, string> row = new Dictionary<string, string>();
+            foreach (string k in _cols) row.Add(k, "");
+            
+            while (!r.EndOfFile())
             {
-                while (reader.Read())
-                {
-                    Dictionary<string, string> row = new Dictionary<string, string>();
-                    foreach (string k in _cols)
-                    {
-                        row.Add(k, reader[k].ToString());
-                    }
-                    yield return row;
-                }
+                foreach (string k in _cols) row[k] = r.FieldValue(k);
+                yield return row;
+                r.NextRow();
             }
         }
 
@@ -96,7 +89,7 @@ namespace BibtexManager
                 sql = sql.Substring(0, sql.Length - 1) + ")";
                 ExecuteNonQuery(sql);
             }
-            catch (Exception) { }
+            catch (System.Exception) { }
         }
 
         public void Delete(string key)
@@ -109,12 +102,22 @@ namespace BibtexManager
         /// </summary>
         public void Close()
         {
-            _conn.Close();
+            try
+            {
+                _conn.Close();
+            }
+            catch { }
         }
+
 
         public void Commit()
         {
-            _conn.Close(); _conn.Open();
+            _conn.CommitTransaction();
+        }
+
+        public void BeginTransaction()
+        {
+            _conn.BeginTransaction();
         }
     }
 }
