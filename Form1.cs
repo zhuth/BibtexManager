@@ -138,10 +138,6 @@ namespace BibtexManager
             Properties.Settings.Default.Save();
         }
 
-        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-        }
-
         private void addBibTexCodeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var dlg = new dlgAddNewSource();
@@ -156,7 +152,12 @@ namespace BibtexManager
             foreach (var r in _bh.ParseFile(source))
             {
                 int idx = addDgvRow(r);
-                if (_sh != null) _sh.Insert(dgv.Rows[idx]);
+                if (_sh != null) if (_sh.Insert(dgv.Rows[idx]) <= 0)
+                    {
+                        _rendering = true;
+                        dgv.Rows.RemoveAt(idx);
+                        _rendering = false;
+                    }
             }
             _sh.Commit();
         }
@@ -269,22 +270,28 @@ namespace BibtexManager
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (_sh != null) _sh.Close();
+            _rendering = true;
             dgv.Rows.Clear();
             sfd.Filter = "Reference Database|*.bdb";
             if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.Cancel) return;
             _sh = new SqliteHelper(sfd.FileName);
             _sh.CreateTable();
+            _rendering = false;
         }
+
+        string oldkey = "";
 
         private void dgv_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             if (_rendering) return;
-            if (dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value == null || dgv.Rows[e.RowIndex].Cells["key"].Value == null) return;
+            if (dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value == null) return;
+            if (dgv.Rows[e.RowIndex].Cells["key"].Value == null) { dgv.Rows[e.RowIndex].Cells["key"].Value = "tk" + DateTime.Now.GetHashCode().ToString("X"); return; }
             string key = dgv.Rows[e.RowIndex].Cells["key"].Value.ToString();
             string field = dgv.Columns[e.ColumnIndex].Name;
+            if (field == "key") key = oldkey;
             string newvalue = dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
             string sql = string.Format("update bibdb set {0} = '{1}' where `key` = '{2}'", field, newvalue.Replace("'", "''"), key);
-            _sh.ExecuteNonQuery(sql);
+            if (_sh.ExecuteNonQuery(sql) <= 0) _sh.Insert(dgv.Rows[e.RowIndex]);
         }
 
         private void dgv_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)
@@ -305,6 +312,18 @@ namespace BibtexManager
                 if (dgv.Rows[i].Cells["key"].Value == null) continue;
                 _sh.Delete(dgv.Rows[i].Cells["key"].Value.ToString());
             }
+        }
+
+        private void exportSelectedToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            sfd.Filter = "BibTex File|*.bib";
+            if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.Cancel) return;
+            _bh.SaveBibFile(sfd.FileName, dgv.SelectedRows);            
+        }
+
+        private void dgv_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
+        {
+            oldkey = "" + dgv.Rows[e.RowIndex].Cells["key"].Value;
         }
     }
 }

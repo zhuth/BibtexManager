@@ -68,7 +68,7 @@ namespace BibtexManager
         {
             string sql = "CREATE TABLE bibdb (";
             foreach (string k in _cols) sql += "`" + k + "` varchar(255),";
-            sql = sql.Substring(0, sql.Length - 1) + ")";
+            sql += " PRIMARY KEY(`key`))";
             ExecuteNonQuery(sql);
         }
 
@@ -76,7 +76,7 @@ namespace BibtexManager
         /// 
         /// </summary>
         /// <param name="row"></param>
-        public void Insert(System.Windows.Forms.DataGridViewRow row)
+        public int Insert(System.Windows.Forms.DataGridViewRow row)
         {
             try
             {
@@ -87,9 +87,10 @@ namespace BibtexManager
                     else sql += "'" + row.Cells[k].Value.ToString().Replace("'", "''") + "',";
                 }
                 sql = sql.Substring(0, sql.Length - 1) + ")";
-                ExecuteNonQuery(sql);
+                return ExecuteNonQuery(sql);
             }
             catch (System.Exception) { }
+            return 0;
         }
 
         public void Delete(string key)

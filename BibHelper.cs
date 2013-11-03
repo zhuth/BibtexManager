@@ -45,22 +45,19 @@ namespace BibtexManager
         /// </summary>
         /// <param name="rows"></param>
         /// <returns></returns>
-        private IEnumerable<string> getEntryStrings(DataGridViewRowCollection rows)
+        private string getEntryString(DataGridViewRow row)
         {
-            foreach (DataGridViewRow row in rows)
+            if ("" + row.Cells["type"].Value == "") return "";
+            string entry = "@" + row.Cells["type"].Value + "{" + row.Cells["key"].Value;
+            foreach (string key in _bibTexFields.Keys)
             {
-                if ("" + row.Cells["type"].Value == "") continue;
-                string entry = "@" + row.Cells["type"].Value + "{" + row.Cells["key"].Value;
-                foreach (string key in _bibTexFields.Keys)
-                {
-                    if (key == "key" || key == "type") continue;
-                    string val = "" + row.Cells[key].Value;
-                    if (val.Length == 0) continue;
-                    entry += "," + Environment.NewLine + key + " = {" + val + "}";
-                }
-                entry += Environment.NewLine + "}" + Environment.NewLine;
-                yield return entry;
+                if (key == "key" || key == "type") continue;
+                string val = "" + row.Cells[key].Value;
+                if (val.Length == 0) continue;
+                entry += "," + Environment.NewLine + key + " = {" + val + "}";
             }
+            entry += Environment.NewLine + "}" + Environment.NewLine;
+            return entry;
         }
 
         /// <summary>
@@ -73,13 +70,23 @@ namespace BibtexManager
             if (filename == null) return;
             using (StreamWriter sw = new StreamWriter(filename))
             {
-                foreach (string entry in getEntryStrings(rows))
+                foreach (DataGridViewRow r in rows)
                 {
-                    sw.WriteLine(entry);
+                    sw.WriteLine(getEntryString(r));
                 }
             }
         }
-        
+
+        public void SaveBibFile(string filename, DataGridViewSelectedRowCollection rows)
+        {
+            using (StreamWriter sw = new StreamWriter(filename))
+            {
+                foreach (DataGridViewRow r in rows)
+                {
+                    sw.WriteLine(getEntryString(r));
+                }
+            }
+        }
         /// <summary>
         /// 解析 BibTex 或 EndNote 文件
         /// </summary>
@@ -257,5 +264,6 @@ namespace BibtexManager
             System.Text.RegularExpressions.Regex reg = new System.Text.RegularExpressions.Regex(@"\{(\w+)\}");
             return reg.Replace(format, new System.Text.RegularExpressions.MatchEvaluator((System.Text.RegularExpressions.Match m) => { return lookup(m.Groups[1].ToString()); }));
         }
+
     }
 }

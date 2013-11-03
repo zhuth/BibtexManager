@@ -46,6 +46,7 @@
             this.searchStrip = new System.Windows.Forms.ToolStripTextBox();
             this.sfd = new System.Windows.Forms.SaveFileDialog();
             this.ofd = new System.Windows.Forms.OpenFileDialog();
+            this.exportSelectedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -59,6 +60,7 @@
             this.dgv.RowTemplate.Height = 23;
             this.dgv.Size = new System.Drawing.Size(577, 324);
             this.dgv.TabIndex = 2;
+            this.dgv.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dgv_CellBeginEdit);
             this.dgv.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_CellValueChanged);
             this.dgv.RowsAdded += new System.Windows.Forms.DataGridViewRowsAddedEventHandler(this.dgv_RowsAdded);
             this.dgv.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.dgv_RowsRemoved);
@@ -82,6 +84,7 @@
             this.newToolStripMenuItem,
             this.openToolStripMenuItem,
             this.saveAsToolStripMenuItem,
+            this.exportSelectedToolStripMenuItem,
             this.toolStripMenuItem1,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
@@ -190,12 +193,18 @@
             // 
             // sfd
             // 
-            this.sfd.FileName = "*.bib";
             this.sfd.Filter = "Reference Database|*.bdb|BibTex File|*.bib";
             // 
             // ofd
             // 
             this.ofd.Filter = "Reference Database|*.bdb";
+            // 
+            // exportSelectedToolStripMenuItem
+            // 
+            this.exportSelectedToolStripMenuItem.Name = "exportSelectedToolStripMenuItem";
+            this.exportSelectedToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
+            this.exportSelectedToolStripMenuItem.Text = "Ex&port Selected...";
+            this.exportSelectedToolStripMenuItem.Click += new System.EventHandler(this.exportSelectedToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -237,6 +246,7 @@
         private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem preferencesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem newToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem exportSelectedToolStripMenuItem;
 
     }
 }
