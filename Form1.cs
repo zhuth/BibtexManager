@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Net;
 
@@ -14,29 +9,25 @@ namespace BibtexManager
 {
     public partial class Form1 : Form
     {
+        BibHelper _bh = new BibHelper();
+        SqliteHelper _sh = null;
 
-        string _myFilename = null;
+        private bool _rendering = false;
 
         public Form1()
         {
             InitializeComponent();
         }
 
-        Dictionary<string, string> _bibTexFields = new Dictionary<string, string>();
-        
         private void Form1_Load(object sender, EventArgs e)
         {
             this.Text = Properties.Resources.softwareName;
-            string[] fields = Properties.Resources.fields.Split(';');
-            foreach (string field in fields)
+            foreach (var pair in _bh.BibTexFields)
             {
-                string[] cols = field.Split('=');
-                if (cols.Length < 2) continue;
-                _bibTexFields.Add(cols[0], cols[1]);
-                if (cols[0] == "type")
+                if (pair.Key == "type")
                 {
                     var colcombo = new DataGridViewComboBoxColumn();
-                    colcombo.HeaderText = cols[1]; colcombo.Name = cols[0];
+                    colcombo.HeaderText = pair.Value; colcombo.Name = pair.Key;
                     foreach (var item in Properties.Resources.types.Split(';'))
                     {
                         colcombo.Items.Add(item);
@@ -46,247 +37,91 @@ namespace BibtexManager
                 }
                 else
                 {
-                    dgv.Columns.Add(cols[0], cols[1]);
+                    dgv.Columns.Add(pair.Key, pair.Value);
                 }
+            }
+
+            if (System.IO.File.Exists(Properties.Settings.Default.RecentLib))
+            {
+                _sh = new SqliteHelper(Properties.Settings.Default.RecentLib);
+                refreshRows();
             }
 
             if (Program.args.Length > 0)
             {
                 if (System.IO.File.Exists(Program.args[0]))
                 {
-                    _myFilename = Program.args[0];
-                    parseFile();
+                    if (Program.args[0].EndsWith(".bdb"))
+                    {
+                        _sh = new SqliteHelper(Program.args[0]); refreshRows();
+                    }
+                    else
+                    {
+                        _bh.ParseFile(Program.args[0]);
+                    }
                 }
             }
-            else
-            {
-                if (System.IO.File.Exists(Properties.Settings.Default.RecentLib))
-                {
-                    _myFilename = Properties.Settings.Default.RecentLib;
-                    parseFile();
-                }
-            }
-            
+
             // Hotkey
-            W32ApiHelper.Regist(this.Handle, 0, Keys.F10, new W32ApiHelper.HotKeyCallBackHanlder(()=>{
-                if (this.Handle == W32ApiHelper.GetForegroundWindow()) { addBibTexCodeToolStripMenuItem_Click(null, null); return; }
-                string str = Clipboard.GetText().ToString();
-                if (string.IsNullOrEmpty(str)) return;
-                if (str[0] == '@' || str[0] == '%')
+            W32ApiHelper.Regist(this.Handle, 0, Keys.F10, new W32ApiHelper.HotKeyCallBackHanlder(() =>
+            {
+                try
                 {
-                    parseFile(str); W32ApiHelper.SetForegroundWindow(this.Handle);
+                    if (this.Handle == W32ApiHelper.GetForegroundWindow()) { addBibTexCodeToolStripMenuItem_Click(null, null); return; }
+                    string str = Clipboard.GetText().ToString();
+                    if (string.IsNullOrEmpty(str)) return;
+                    if (str[0] == '@' || str[0] == '%')
+                    {
+                        importRecords(str);
+                        W32ApiHelper.SetForegroundWindow(this.Handle);
+                    }
+                    else
+                    {
+                        SendKeys.SendWait("^c");
+                        System.Threading.Thread.Sleep(750);
+                        str = Clipboard.GetText().ToString();
+                        System.Diagnostics.Process.Start(string.Format(Properties.Settings.Default.DefaultSearchEngine, str));
+                    }
                 }
-                else
-                {
-                    SendKeys.SendWait("^c");
-                    System.Threading.Thread.Sleep(750);
-                    str = Clipboard.GetText().ToString();
-                    System.Diagnostics.Process.Start(string.Format(Properties.Settings.Default.DefaultSearchEngine, str));
-                }
+                catch (Exception) { }
             }));
         }
-
-        private void parseEndNoteFile(string content = null)
-        {
-            // fields: key=Key;type=类型;author=作者;title=著作名称;journal=期刊;volume=卷;year=年份;month=月份;number=编号;pages=页码;booktitle=书名;chapter=章;publisher=出版商;address=地址;annote=注解;crossref=交叉引用;date=日期;doi=DOI;edition=版次;editor=编者;eprint=电子出版物;howpublished=出版方式;institution=机构;note=备注;organization=组织;school=院校;series=系列;url=URL;
-            // types:  Article;Book;Booklet;Conference;Inbook;Incollection;Inproceedings;Manual;Mastersthesis;Misc;Phdthesis;Proceedings;Techreport;Unpublished
-            Dictionary<string, string> row = new Dictionary<string,string>();
-            string field = "";
-
-            foreach (string l in content.Split('%'))
-            {
-                bool fieldNameFinished = true;
-                string line = l.Trim();
-                if (string.IsNullOrEmpty(line) || !line.Contains(' ')) continue;
-                string value = line.Substring(2).Trim();
-                if (string.IsNullOrEmpty(value)) continue;
-                switch (line[0])
-                {
-                    case '0':
-                        field = "type";
-                        switch (value.Substring(0, 3).ToLower())
-                        {
-                            case "the":
-                                value = "phdthesis"; break;
-                            case "jou":
-                                value = "article"; break;
-                            case "boo":
-                                value = "book"; break;
-                        }
-                        break;
-                    case 'A':
-                        field = "author"; break;
-                    case 'T':
-                        field = "title"; break;
-                    case 'I':                        
-                        field = "institution"; break;
-                    case 'D':
-                        field = "year"; break;
-                    case 'N':
-                        field = "number"; while (value.StartsWith("0")) value = value.Substring(1); break;
-                    case 'P':
-                        field = "pages"; if (value.Contains('+')) value = value.Substring(0, value.IndexOf('+')); break;
-                    case 'J':
-                        field = "journal"; break;
-                    case '9':
-                        if (value == "硕士" || value.ToLower()[0] == 'm')
-                        {
-                            field = "type"; value = "mastersthesis";
-                            parseSetField(ref field, ref value, ref fieldNameFinished, ref row);
-                        } break;
-                    case 'W':
-                        // commit this row
-                        field = "key"; value = row["author"] + row["year"] + row["title"];
-                        parseSetField(ref field, ref value, ref fieldNameFinished, ref row);
-                        if (row.ContainsKey("institution"))
-                        {
-                            field = "publisher"; value = row["institution"];
-                            parseSetField(ref field, ref value, ref fieldNameFinished, ref row);
-                        }
-                        int row_id = dgv.Rows.Add();
-                        foreach (string key in row.Keys)
-                        {
-                            dgv.Rows[row_id].Cells[key].Value = row[key];
-                        }
-                        row.Clear();
-                        break;
-                }
-                parseSetField(ref field, ref value, ref fieldNameFinished, ref row);
-            }
-        }
-
+        
         protected override void WndProc(ref Message m)
         {
             base.WndProc(ref m);
             W32ApiHelper.ProcessHotKey(m);
         }
 
-        private IEnumerable<string> getEntryStrings(DataGridViewRowCollection rows)
+        private int addDgvRow(Dictionary<string, string> row)
         {
-            foreach (DataGridViewRow row in rows)
+            _rendering = true;
+            int row_id = dgv.Rows.Add();
+            foreach (string key in row.Keys)
             {
-                if ("" + row.Cells["type"].Value == "") continue;
-                string entry = "@" + row.Cells["type"].Value + "{" + row.Cells["key"].Value;
-                foreach (string key in _bibTexFields.Keys)
-                {
-                    if (key == "key" || key == "type") continue;
-                    string val = "" + row.Cells[key].Value;
-                    if (val.Length == 0) continue;
-                    entry += "," + Environment.NewLine + key + " = {" + val + "}";
-                }
-                entry += Environment.NewLine + "}" + Environment.NewLine;
-                yield return entry;
+                dgv.Rows[row_id].Cells[key].Value = row[key];
             }
+            _rendering = false;
+            return row_id;
         }
 
-        private void saveFile()
+        private void refreshRows()
         {
-            if (_myFilename == null) return;
-            using (StreamWriter sw = new StreamWriter(_myFilename))
+            _rendering = true;
+            if (_sh == null)return;
+            dgv.Rows.Clear();
+            foreach (var r in _sh.ExecuteQuery("select * from bibdb"))
             {
-                foreach(string entry in getEntryStrings(dgv.Rows)) {
-                    sw.WriteLine(entry);
-                }
+                addDgvRow(r);
             }
-            Properties.Settings.Default.RecentLib = _myFilename;
-            Properties.Settings.Default.Save();
+            _rendering = false;
         }
 
-        private void parseFile(string content = null)
+        private void exportToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (_myFilename == null && content == null) return;
-
-            if (content == null) content = File.ReadAllText(_myFilename);
-            string field = "", value = "";
-            if (content[0] == '@')
-            {
-                Regex regComment = new Regex(@"\%.*", RegexOptions.Compiled);
-                content = regComment.Replace(content, "");
-            }
-            Regex regSpace = new Regex(@"\s+", RegexOptions.Compiled);
-            content = regSpace.Replace(content, " ");
-            Dictionary<string, string> row = new Dictionary<string, string>();
-
-            if (content.StartsWith("%"))
-            {
-                // EndNote File
-                parseEndNoteFile(content);
-                return;
-            }
-
-            int inBracket = 0; bool fieldNameFinished = false;
-            for (int i = 0; i < content.Length; ++i)
-            {
-                switch (content[i])
-                {
-                    case '@':
-                        if (inBracket > 0) continue;
-                        field = "type"; value = ""; fieldNameFinished = true;
-                        break;
-                    case '{':
-                        if (inBracket == 0)
-                        {
-                            parseSetField(ref field, ref value, ref fieldNameFinished, ref row);
-                            field = "key"; value = ""; fieldNameFinished = true;
-                        }
-                        ++inBracket;
-                        break;
-                    case '}':
-                        --inBracket;
-                        if (inBracket == 0)
-                        {
-                            parseSetField(ref field, ref value, ref fieldNameFinished, ref row);
-                            int row_id = dgv.Rows.Add();
-                            foreach (string key in row.Keys)
-                            {
-                                dgv.Rows[row_id].Cells[key].Value = row[key];
-                            }
-                            row.Clear();
-                        }
-                        break;
-                    case '=':
-                        if (inBracket > 1 || fieldNameFinished) value += content[i];
-                        else fieldNameFinished = true;
-                        break;
-                    case '\\':
-                        ++i;
-                        switch (content[i])
-                        {
-                            case '\\':
-                                if (fieldNameFinished) value += Environment.NewLine;
-                                break;
-                            default:
-                                value += '\\' + content[i];
-                                break;
-                        }
-                        break;
-                    case ',':
-                        if (inBracket > 1 && fieldNameFinished) value += content[i];
-                        else parseSetField(ref field, ref value, ref fieldNameFinished, ref row);
-                        break;
-                    default:
-                        if (fieldNameFinished) value += content[i]; else field += content[i];
-                        break;
-                }
-            }
-        }
-
-        private void parseSetField(ref string field, ref string value, ref bool fieldNameFinished, ref Dictionary<string,string> row)
-        {
-            value = value.Trim(); field = field.Trim();
-            if (field == "type") value = value[0].ToString().ToUpper() + value.ToLower().Substring(1);
-            if (_bibTexFields.ContainsKey(field))
-                if (!row.ContainsKey(field)) row.Add(field, value);
-                else if (field == "author") row[field] += " and " + value;
-                else row[field] = value;
-            fieldNameFinished = false; value = ""; field = "";                        
-        }
-
-        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
+            sfd.Filter = "BibTex File|*.bib";
             if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.Cancel) return;
-            _myFilename = sfd.FileName;
-            saveFile();
+            _bh.SaveBibFile(sfd.FileName, dgv.Rows);
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -296,34 +131,16 @@ namespace BibtexManager
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (_sh != null) _sh.Close();
             if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.Cancel) return;
-            _myFilename = ofd.FileName;
-            parseFile();
+            _sh = new SqliteHelper(ofd.FileName); refreshRows();
+            Properties.Settings.Default.RecentLib = ofd.FileName;
+            Properties.Settings.Default.Save();
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (_myFilename == null)
-            {
-                saveAsToolStripMenuItem_Click(sender, e);
-                return;
-            }
-            saveFile();
-        }
-
-        private void duplicateToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (dgv.SelectedRows.Count < 1) return;
-            List<DataGridViewCellCollection> rows = new List<DataGridViewCellCollection>();
-            for (int i = 0; i < dgv.SelectedRows.Count; ++i)
-                rows.Add(dgv.SelectedRows[i].Cells);
-            foreach (var row in rows)
-            {
-                var r = new DataGridViewRow();
-                foreach(DataGridViewCell c in row)
-                    r.Cells.Add(c);
-                dgv.Rows.Add();
-            }
+            _sh.Commit();
         }
 
         private void addBibTexCodeToolStripMenuItem_Click(object sender, EventArgs e)
@@ -331,7 +148,16 @@ namespace BibtexManager
             var dlg = new dlgAddNewSource();
             if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
             string source = dlg.GetSource();
-            parseFile(source);
+            importRecords(source);
+        }
+
+        private void importRecords(string source)
+        {
+            foreach (var r in _bh.ParseFile(source))
+            {
+                int idx = addDgvRow(r);
+                if (_sh != null) _sh.Insert(dgv.Rows[idx]);
+            }
         }
 
         private void copyKeyToolStripMenuItem_Click(object sender, EventArgs e)
@@ -348,11 +174,6 @@ namespace BibtexManager
             Clipboard.SetText(entries);
         }
 
-        private string formatByDictionary(string format, Func<string, string> lookup)
-        {
-            Regex reg = new Regex(@"\{(\w+)\}");
-            return reg.Replace(format, new MatchEvaluator((Match m)=>{return lookup(m.Groups[1].ToString());}));
-        }
 
         private void copyFullReferenceToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -386,12 +207,18 @@ namespace BibtexManager
                         if (!isChinese) txt = Properties.Settings.Default.EnglishArticleItemFormat;
                         break;
                 }
-                txt = formatByDictionary(txt, new Func<string, string>((x) => {
-                    if (row.Cells[x].Value == null) return "";
-                    string r = row.Cells[x].Value.ToString();
-                    if (x == "pages") return r.Replace("--", "-");
-                    if (x == "author") return r.Replace(" and ", isChinese ? "，" : ", ");
-                    return r;
+                txt = _bh.FormatByDictionary(txt, new Func<string, string>((x) => {
+                    try
+                    {
+                        if (row.Cells[x].Value == null) return "";
+                        string r = row.Cells[x].Value.ToString();
+                        if (x == "pages") return r.Replace("--", "-");
+                        if (x == "author") return r.Replace(" and ", isChinese ? "，" : ", ");
+                        return r;
+                    }
+                    catch (Exception) {
+                        return "";
+                    }
                 }));
                 Clipboard.SetText(txt);
             }
@@ -410,15 +237,10 @@ namespace BibtexManager
             }
             catch (Exception) { }
         }
-
-        private void articleToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }
-
+        
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Environment.Exit(0);
+            W32ApiHelper.UnregisterHotKey(this.Handle);
         }
 
         private void searchStrip_KeyUp(object sender, KeyEventArgs e)
@@ -438,10 +260,6 @@ namespace BibtexManager
             }
         }
 
-        private void searchStrip_TextChanged(object sender, EventArgs e)
-        {
-        }
-
         private void preferencesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             new dlgPreferences().ShowDialog();
@@ -449,14 +267,42 @@ namespace BibtexManager
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (!string.IsNullOrEmpty(_myFilename))
+            if (_sh != null) _sh.Close();
+            dgv.Rows.Clear();
+            sfd.Filter = "Reference Database|*.bdb";
+            if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.Cancel) return;
+            _sh = new SqliteHelper(sfd.FileName);
+            _sh.CreateTable();
+        }
+
+        private void dgv_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            if (_rendering) return;
+            if (dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value == null || dgv.Rows[e.RowIndex].Cells["key"].Value == null) return;
+            string key = dgv.Rows[e.RowIndex].Cells["key"].Value.ToString();
+            string field = dgv.Columns[e.ColumnIndex].Name;
+            string newvalue = dgv.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
+            string sql = string.Format("update bibdb set {0} = '{1}' where `key` = '{2}'", field, newvalue.Replace("'", "''"), key);
+            _sh.ExecuteNonQuery(sql);
+        }
+
+        private void dgv_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e)
+        {
+            if (_rendering || _sh == null) return;
+            for (int i = e.RowIndex; i < e.RowIndex + e.RowCount; ++i)
             {
-                if (MessageBox.Show("Save the current database file?", this.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == System.Windows.Forms.DialogResult.Yes)
-                {
-                    saveToolStripMenuItem_Click(null, null);
-                }
-                dgv.Rows.Clear();
-                _myFilename = null;
+                if (dgv.Rows[i].Cells["key"].Value == null || dgv.Rows[i].Cells["key"].Value.ToString() == "") continue;
+                _sh.Insert(dgv.Rows[i]);
+            }
+        }
+
+        private void dgv_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e)
+        {
+            if (_rendering || _sh == null) return;
+            for (int i = e.RowIndex; i < e.RowIndex + e.RowCount; ++i)
+            {
+                if (dgv.Rows[i].Cells["key"].Value == null) continue;
+                _sh.Delete(dgv.Rows[i].Cells["key"].Value.ToString());
             }
         }
     }

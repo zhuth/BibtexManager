@@ -31,6 +31,7 @@
             this.dgv = new System.Windows.Forms.DataGridView();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -40,14 +41,12 @@
             this.preferencesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.entryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.removeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.duplicateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addBibTexCodeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyKeyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyFullReferenceToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.searchStrip = new System.Windows.Forms.ToolStripTextBox();
             this.sfd = new System.Windows.Forms.SaveFileDialog();
             this.ofd = new System.Windows.Forms.OpenFileDialog();
-            this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.dgv)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -61,6 +60,9 @@
             this.dgv.RowTemplate.Height = 23;
             this.dgv.Size = new System.Drawing.Size(577, 324);
             this.dgv.TabIndex = 2;
+            this.dgv.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgv_CellValueChanged);
+            this.dgv.RowsAdded += new System.Windows.Forms.DataGridViewRowsAddedEventHandler(this.dgv_RowsAdded);
+            this.dgv.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.dgv_RowsRemoved);
             // 
             // menuStrip1
             // 
@@ -88,6 +90,13 @@
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(39, 23);
             this.fileToolStripMenuItem.Text = "&File";
             // 
+            // newToolStripMenuItem
+            // 
+            this.newToolStripMenuItem.Name = "newToolStripMenuItem";
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(164, 22);
+            this.newToolStripMenuItem.Text = "&New";
+            this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripMenuItem_Click);
+            // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
@@ -109,8 +118,8 @@
             this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
             this.saveAsToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F12;
             this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(164, 22);
-            this.saveAsToolStripMenuItem.Text = "Save &as...";
-            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
+            this.saveAsToolStripMenuItem.Text = "&Export...";
+            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.exportToolStripMenuItem_Click);
             // 
             // toolStripMenuItem1
             // 
@@ -135,7 +144,7 @@
             // preferencesToolStripMenuItem
             // 
             this.preferencesToolStripMenuItem.Name = "preferencesToolStripMenuItem";
-            this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.preferencesToolStripMenuItem.Text = "&Preferences";
             this.preferencesToolStripMenuItem.Click += new System.EventHandler(this.preferencesToolStripMenuItem_Click);
             // 
@@ -143,7 +152,6 @@
             // 
             this.entryToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.removeToolStripMenuItem,
-            this.duplicateToolStripMenuItem,
             this.addBibTexCodeToolStripMenuItem,
             this.copyKeyToolStripMenuItem,
             this.copyFullReferenceToolStripMenuItem});
@@ -158,14 +166,6 @@
             this.removeToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
             this.removeToolStripMenuItem.Text = "&Remove";
             this.removeToolStripMenuItem.Click += new System.EventHandler(this.removeToolStripMenuItem_Click);
-            // 
-            // duplicateToolStripMenuItem
-            // 
-            this.duplicateToolStripMenuItem.Name = "duplicateToolStripMenuItem";
-            this.duplicateToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
-            this.duplicateToolStripMenuItem.Text = "&Duplicate";
-            this.duplicateToolStripMenuItem.Visible = false;
-            this.duplicateToolStripMenuItem.Click += new System.EventHandler(this.duplicateToolStripMenuItem_Click);
             // 
             // addBibTexCodeToolStripMenuItem
             // 
@@ -197,24 +197,15 @@
             this.searchStrip.Name = "searchStrip";
             this.searchStrip.Size = new System.Drawing.Size(100, 23);
             this.searchStrip.KeyUp += new System.Windows.Forms.KeyEventHandler(this.searchStrip_KeyUp);
-            this.searchStrip.TextChanged += new System.EventHandler(this.searchStrip_TextChanged);
             // 
             // sfd
             // 
             this.sfd.FileName = "*.bib";
-            this.sfd.Filter = "BibTex File|*.bib";
+            this.sfd.Filter = "Reference Database|*.bdb|BibTex File|*.bib";
             // 
             // ofd
             // 
-            this.ofd.FileName = "*.bib";
-            this.ofd.Filter = "BibTex File|*.bib";
-            // 
-            // newToolStripMenuItem
-            // 
-            this.newToolStripMenuItem.Name = "newToolStripMenuItem";
-            this.newToolStripMenuItem.Size = new System.Drawing.Size(164, 22);
-            this.newToolStripMenuItem.Text = "&New";
-            this.newToolStripMenuItem.Click += new System.EventHandler(this.newToolStripMenuItem_Click);
+            this.ofd.Filter = "Reference Database|*.bdb";
             // 
             // Form1
             // 
@@ -250,7 +241,6 @@
         private System.Windows.Forms.OpenFileDialog ofd;
         private System.Windows.Forms.ToolStripMenuItem entryToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem removeToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem duplicateToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem addBibTexCodeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem copyKeyToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem copyFullReferenceToolStripMenuItem;

@@ -43,11 +43,11 @@ namespace BibtexManager
         /// </summary> 
         /// <param name="hWnd">持有快捷键窗口的句柄</param> 
         /// <param name="callBack">回调函数</param> 
-        public static void UnRegist(IntPtr hWnd, HotKeyCallBackHanlder callBack)
+        public static void UnregisterHotKey(IntPtr hWnd, HotKeyCallBackHanlder callBack = null)
         {
             foreach (KeyValuePair<int, HotKeyCallBackHanlder> var in keymap)
             {
-                if (var.Value == callBack)
+                if (callBack == null || var.Value == callBack)
                     UnregisterHotKey(hWnd, var.Key);
             }
         }
