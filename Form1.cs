@@ -131,11 +131,18 @@ namespace BibtexManager
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (_sh != null) _sh.Close();
             if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.Cancel) return;
-            _sh = new SqliteHelper(ofd.FileName); refreshRows();
-            Properties.Settings.Default.RecentLib = ofd.FileName;
-            Properties.Settings.Default.Save();
+            if (ofd.FileName.EndsWith("bdb"))
+            {
+                if (_sh != null) _sh.Close();
+                _sh = new SqliteHelper(ofd.FileName); refreshRows();
+                Properties.Settings.Default.RecentLib = ofd.FileName;
+                Properties.Settings.Default.Save();
+            }
+            else
+            {
+                importRecords(System.IO.File.ReadAllText(ofd.FileName));
+            }
         }
 
         private void addBibTexCodeToolStripMenuItem_Click(object sender, EventArgs e)
