@@ -80,7 +80,15 @@ namespace BibtexManager
                         SendKeys.SendWait("^c");
                         System.Threading.Thread.Sleep(750);
                         str = Clipboard.GetText().ToString();
-                        System.Diagnostics.Process.Start(string.Format(Properties.Settings.Default.DefaultSearchEngine, str));
+                        if (str[0] == '@' || str[0] == '%')
+                        {
+                            importRecords(str);
+                            W32ApiHelper.SetForegroundWindow(this.Handle);
+                        }
+                        else
+                        {
+                            System.Diagnostics.Process.Start(string.Format(Properties.Settings.Default.DefaultSearchEngine, str));
+                        }
                     }
                 }
                 catch (Exception) { }
