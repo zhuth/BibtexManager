@@ -273,7 +273,7 @@ namespace BibtexManager
                     foreach (DataGridViewCell c in dgv.Rows[searchIndex].Cells)
                     {
                         if (c.Value == null) continue;
-                        if (c.Value.ToString().Contains(searchStrip.Text)) { flag = true; break; }
+                        if (c.Value.ToString().ToLower().Contains(searchStrip.Text.ToLower())) { flag = true; break; }
                     }
                     dgv.Rows[searchIndex].Selected = flag;
                 }
