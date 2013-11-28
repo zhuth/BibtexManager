@@ -3,15 +3,16 @@
 // @description    cnki bibtex generator
 // @namespace      http://tianhua.me/
 // @auth           zhuth
-// @version        0.1
+// @version        0.11
 // @license        Public Domain
 // @include		   http://*.cnki.*/*.aspx*
 // ==/UserScript==
 
-var x=document.getElementsByClassName("picShow")[0].getElementsByTagName("a");
+var x = document.getElementsByClassName("picShow")[0].getElementsByTagName("a");
 var journal = x[1].innerText;
-var year = parseInt(x[x.length - 2].innerText);
-var number = parseInt(x[x.length - 2].innerText.substring(x[4].innerText.indexOf('年')+1));
+var xt = ''; for(var i in x) xt += x[i].innerText; 
+var year = parseInt(xt.substring(xt.indexOf('年')-4));
+var number = parseInt(xt.substring(xt.indexOf('年')+1));
 var title = document.getElementsByTagName('h1')[0].innerText;
 var authors = document.getElementsByClassName('author')[0].innerText.split('【')[1].substring(3).trim().split('；');
 while (authors[authors.length - 1] == '') authors.pop();
